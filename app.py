@@ -3,6 +3,9 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import urllib.parse
 import mimetypes
 import pathlib
+import datetime
+import requests
+import json
 
 class HttpHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -14,10 +17,8 @@ class HttpHandler(BaseHTTPRequestHandler):
                 self.send_html_file('message.html')
             else:
                 if pathlib.Path().joinpath(pr_url.path[1:]).exists():
-                    print(f"Serving static file: {pr_url.path}")  # Додано для дебагу
                     self.send_static()
                 else:
-                    print(f"File not found: {pr_url.path}, serving error.html")  # Додано для дебагу
                     self.send_html_file('error.html', 404)
         except Exception as e:
             self.send_response(500)
@@ -45,19 +46,40 @@ class HttpHandler(BaseHTTPRequestHandler):
             self.wfile.write(file.read())
 
     def do_POST(self):
-        data = self.rfile.read(int(self.headers['Content-Length']))
-        data_parse = urllib.parse.unquote_plus(data.decode())
+        post_data = self.rfile.read(int(self.headers['Content-Length']))
+        data_parse = urllib.parse.unquote_plus(post_data.decode())
         data_dict = {key: value for key, value in [el.split('=') for el in data_parse.split('&')]}
+
+        storage_path = pathlib.Path('storage/data.json')
+        storage_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if storage_path.exists():
+            with open(storage_path, 'r') as file:
+                try:
+                    data = json.load(file)
+                except json.JSONDecodeError:
+                    data = {}
+        else:
+            data = {}
+        
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        data[timestamp] = data_dict
+
+        print(data)
+
+        with open(storage_path, 'w') as file:
+            json.dump(data, file, indent=4)
+
         self.send_response(302)
         self.send_header('Location', '/')
         self.end_headers()
-
-
+        
 
 def run(server_class=HTTPServer, handler_class=HttpHandler):
     server_address = ('0.0.0.0', 3000)
     http = server_class(server_address, handler_class)
-    print("Server running on http://localhost:3000")  # Додано для дебагу
+    print("Server running on http://localhost:3000")
     try:
         http.serve_forever()
     except KeyboardInterrupt:
@@ -65,5 +87,5 @@ def run(server_class=HTTPServer, handler_class=HttpHandler):
         http.server_close()
 
 if __name__ == '__main__':
-    print("Starting server...")  # Додано для дебагу
+    print("Starting server...")
     run()
