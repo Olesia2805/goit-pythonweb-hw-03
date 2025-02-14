@@ -16,3 +16,35 @@ body {
 textarea {
   height: 250px;
 }
+
+.read-header{
+  padding: 20px;
+}
+
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.card {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 2px 2px 6px 0 rgba(0, 0, 0, 0.1);
+    min-width: 300px;
+    margin: auto;
+}
+
+.card-header {
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 10px;
+    text-align: center;
+    background-color: #b2d7ff;
+    color: rgb(0, 0, 0);
+}
+
+.card-footer {
+    font-size: 0.5em;
+    text-align: right;
+}
+
